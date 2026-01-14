@@ -1,21 +1,21 @@
-const mongoose = require("mongoose"); // 👈 Yeh zaroori hai aggregation ke liye
+const mongoose = require("mongoose"); 
 const { asyncHandler } = require("../utils/asyncHandler");
 const ApiError = require("../utils/ApiError");
 const User = require("../models/user.model");
 const ApiResponse = require("../utils/ApiResponse");
-const { uploadOnCloudinary } = require("../utils/cloudinary");
+// const { uploadOnCloudinary } = require("../utils/cloudinary"); // Abhi iski zaroorat nahi
 const jwt = require("jsonwebtoken");
 
-// 🚀 Register User Logic
-const registerUser = asyncHandler( async (req, res) => {
+// 🚀 Register User Logic (Updated: Local File Save)
+const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body;
 
-    if (
-        [fullName, email, username, password].some((field) => field?.trim() === "")
-    ) {
+    // 1. Validation
+    if ([fullName, email, username, password].some((field) => field?.trim() === "")) {
         throw new ApiError(400, "All fields are required");
     }
 
+    // 2. Check Exists
     const existedUser = await User.findOne({
         $or: [{ username }, { email }]
     })
@@ -24,36 +24,29 @@ const registerUser = asyncHandler( async (req, res) => {
         throw new ApiError(409, "User with email or username already exists");
     }
 
+    // 3. Local Paths Get karo
     const avatarLocalPath = req.files?.avatar?.[0]?.path;
-    
-    if (!avatarLocalPath) {
-        throw new ApiError(400, "Avatar file is required");
-    }
-
     let coverImageLocalPath;
+    
     if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
         coverImageLocalPath = req.files.coverImage[0].path;
     }
 
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath);
-
-    if (!avatar) {
-        throw new ApiError(400, "Avatar file failed to upload on Cloudinary");
+    if (!avatarLocalPath) {
+        throw new ApiError(400, "Avatar file is required");
     }
 
+    // 4. Database Create (Bypass Cloudinary)
     const user = await User.create({
         fullName,
-        avatar: avatar.url,
-        coverImage: coverImage?.url || "",
+        avatar: avatarLocalPath, // Seedha local path save karo
+        coverImage: coverImageLocalPath || "",
         email, 
         password,
         username: username.toLowerCase()
     })
 
-    const createdUser = await User.findById(user._id).select(
-        "-password -refreshToken"
-    )
+    const createdUser = await User.findById(user._id).select("-password -refreshToken")
 
     if (!createdUser) {
         throw new ApiError(500, "Something went wrong while registering the user");
@@ -62,7 +55,7 @@ const registerUser = asyncHandler( async (req, res) => {
     return res.status(201).json(
         new ApiResponse(200, createdUser, "User registered Successfully")
     )
-} )
+})
 
 // 🔓 Login User Logic
 const loginUser = asyncHandler(async (req, res) => {
@@ -243,18 +236,14 @@ const updateUserAvatar = asyncHandler(async(req, res) => {
     if (!avatarLocalPath) {
         throw new ApiError(400, "Avatar file is missing")
     }
-
-    const avatar = await uploadOnCloudinary(avatarLocalPath)
-
-    if (!avatar.url) {
-        throw new ApiError(400, "Error while uploading on avatar")
-    }
+    // Note: Local update logic yahan bhi chahiye hoga agar Cloudinary hata rahe hain
+    // Filhal Register route par focus hai.
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
-                avatar: avatar.url
+                avatar: avatarLocalPath // Update to local path
             }
         },
         {new: true}
@@ -273,17 +262,11 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
         throw new ApiError(400, "Cover image file is missing")
     }
 
-    const coverImage = await uploadOnCloudinary(coverImageLocalPath)
-
-    if (!coverImage.url) {
-        throw new ApiError(400, "Error while uploading on cover image")
-    }
-
     const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
-                coverImage: coverImage.url
+                coverImage: coverImageLocalPath // Update to local path
             }
         },
         {new: true}
@@ -371,7 +354,7 @@ const getUserChannelProfile = asyncHandler(async(req, res) => {
     )
 })
 
-// 👇 NEW FUNCTION: Get Watch History (Added here)
+// 👇 Get Watch History
 const getWatchHistory = asyncHandler(async(req, res) => {
     const user = await User.aggregate([
         {
@@ -426,7 +409,6 @@ const getWatchHistory = asyncHandler(async(req, res) => {
     )
 })
 
-// 👇 EXPORTS: Ab yahan total 11 functions hain
 module.exports = {
     registerUser,
     loginUser,
@@ -438,5 +420,5 @@ module.exports = {
     updateUserCoverImage,
     getCurrentUser,
     getUserChannelProfile,
-    getWatchHistory       // 👈 Added this
+    getWatchHistory
 }

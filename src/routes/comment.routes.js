@@ -1,21 +1,13 @@
 const { Router } = require("express");
-const {
-    addComment,
-    deleteComment,
-    getVideoComments,
-    updateComment
-} = require("../controllers/comment.controller");
+const { addComment, getVideoComments } = require("../controllers/comment.controller");
 const { verifyJWT } = require("../middlewares/auth.middleware");
 
 const router = Router();
 
-// Saare routes par login zaroori hai
-router.use(verifyJWT);
+// URL: /api/v1/comments/:videoId
 
-// 1. Video ID wale routes (List dekhna aur Comment karna)
-router.route("/:videoId").get(getVideoComments).post(addComment);
-
-// 2. Comment ID wale routes (Delete aur Edit karna)
-router.route("/c/:commentId").delete(deleteComment).patch(updateComment);
+router.route("/:videoId")
+    .get(getVideoComments)          // 👀 Dekhna: Public (No Login Required)
+    .post(verifyJWT, addComment);   // ✍️ Likhna: Private (Login Required)
 
 module.exports = router;

@@ -1,36 +1,36 @@
 const { Router } = require("express");
-const { verifyJWT } = require("../middlewares/auth.middleware");
+const { verifyJWT } = require("../middlewares/auth.middleware"); // 👈 Guard ko bulaya
 const { upload } = require("../middlewares/multer.middleware");
 const { 
     publishAVideo, 
     getVideoById, 
     updateVideo, 
     deleteVideo, 
-    togglePublishStatus 
+    togglePublishStatus,
+    getAllVideos
 } = require("../controllers/video.controller");
 
 const router = Router();
 
-// 🔒 Security: Saare routes par Login zaroori hai
-router.use(verifyJWT); 
+// 🎥 1. Home Page (Sab dekh sakein) & Upload (Sirf Login wale)
+router.route("/")
+    .get(getAllVideos) // 👀 Videos dekhne ke liye Login zaroori NAHI hai
+    .post(
+        verifyJWT, // 👈 🛑 Yahan Guard laga diya (Sirf Upload par)
+        upload.fields([
+            { name: "videoFile", maxCount: 1 },
+            { name: "thumbnail", maxCount: 1 },
+        ]),
+        publishAVideo
+    );
 
-// 🎥 1. Publish Video Route (Already Done)
-router.route("/").post(
-    upload.fields([
-        { name: "videoFile", maxCount: 1 },
-        { name: "thumbnail", maxCount: 1 },
-    ]),
-    publishAVideo
-);
-
-// 📺 2. Get, Update, Delete Video Routes
-// Ek hi URL par 3 alag methods
+// 📺 2. Single Video Operations
 router.route("/:videoId")
-    .get(getVideoById)                              // Video details dekhne ke liye
-    .delete(deleteVideo)                            // Video delete karne ke liye
-    .patch(upload.single("thumbnail"), updateVideo); // Video update karne ke liye (Thumbnail update ho sakti hai)
+    .get(getVideoById) // Video dekhna sabke liye free
+    .delete(verifyJWT, deleteVideo) // Delete sirf Login wala kare
+    .patch(verifyJWT, upload.single("thumbnail"), updateVideo); // Update bhi sirf Login wala
 
-// 🔄 3. Toggle Publish Status
-router.route("/toggle/publish/:videoId").patch(togglePublishStatus);
+// 🔄 3. Status Toggle
+router.route("/toggle/publish/:videoId").patch(verifyJWT, togglePublishStatus);
 
 module.exports = router;

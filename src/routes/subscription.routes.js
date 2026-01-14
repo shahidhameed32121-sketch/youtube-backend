@@ -1,21 +1,15 @@
 const { Router } = require("express");
-const { 
-    toggleSubscription, 
-    getUserChannelSubscribers, 
-    getSubscribedChannels 
-} = require("../controllers/subscription.controller");
+const { toggleSubscription, getUserChannelSubscribers } = require("../controllers/subscription.controller");
 const { verifyJWT } = require("../middlewares/auth.middleware");
 
 const router = Router();
 
-// Saare routes secure hain
+// 🔒 Subscribe karne ke liye Login zaroori hai
 router.use(verifyJWT);
 
-router
-    .route("/c/:channelId")
-    .get(getUserChannelSubscribers) // Subscribers ki list dekho
-    .post(toggleSubscription);      // Subscribe/Unsubscribe karo
-
-router.route("/u/:subscriberId").get(getSubscribedChannels); // User ne kisko subscribe kiya
+// URL Aisa hoga: /api/v1/subscriptions/c/CHANNEL_ID_HERE
+router.route("/c/:channelId")
+    .post(toggleSubscription)      // Subscribe/Unsubscribe button ke liye
+    .get(getUserChannelSubscribers); // Subscribers dekhne ke liye
 
 module.exports = router;

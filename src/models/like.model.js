@@ -1,24 +1,25 @@
 const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
-const likeSchema = new mongoose.Schema({
+const likeSchema = new Schema({
     video: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Video"
     },
     comment: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Comment"
     },
     tweet: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "Tweet"
     },
     likedBy: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: "User"
     },
-}, {timestamps: true})
+}, { timestamps: true });
 
 const Like = mongoose.model("Like", likeSchema);
 
-module.exports = { Like }
+module.exports = { Like };

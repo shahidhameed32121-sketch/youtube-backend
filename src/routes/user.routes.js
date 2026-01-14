@@ -10,7 +10,7 @@ const {
     updateUserCoverImage,
     getCurrentUser,
     getUserChannelProfile,
-    getWatchHistory       // 👈 Import kiya
+    getWatchHistory
 } = require("../controllers/user.controller");
 
 const { upload } = require("../middlewares/multer.middleware");
@@ -18,14 +18,21 @@ const { verifyJWT } = require("../middlewares/auth.middleware");
 
 const router = Router();
 
-// 1. Register & Login
+// 👇 STEP 2: Register Route (Avatar + Cover Image Upload)
 router.route("/register").post(
     upload.fields([
-        { name: "avatar", maxCount: 1 },
-        { name: "coverImage", maxCount: 1 }
+        {
+            name: "avatar",
+            maxCount: 1
+        },
+        {
+            name: "coverImage",
+            maxCount: 1
+        }
     ]),
     registerUser
 );
+// 👆 Step 2 complete
 
 router.route("/login").post(loginUser);
 
@@ -41,9 +48,11 @@ router.route("/cover-image").patch(verifyJWT, upload.single("coverImage"), updat
 
 // User Data
 router.route("/current-user").get(verifyJWT, getCurrentUser);
+
+// Channel Profile (Login zaroori hai taake pata chalay subscribe kiya hai ya nahi)
 router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 
-// 👇 Final Route: Watch History
+// Watch History
 router.route("/history").get(verifyJWT, getWatchHistory);
 
 module.exports = router;

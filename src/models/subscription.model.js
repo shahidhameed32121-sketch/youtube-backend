@@ -2,15 +2,15 @@ const mongoose = require("mongoose");
 
 const subscriptionSchema = new mongoose.Schema({
     subscriber: {
-        type: mongoose.Schema.Types.ObjectId, // wo user jo subscribe kar raha hai
+        type: mongoose.Schema.Types.ObjectId, // Jo subscribe kar raha hai (Main)
         ref: "User"
     },
     channel: {
-        type: mongoose.Schema.Types.ObjectId, // wo user jisko subscribe kiya ja raha hai
+        type: mongoose.Schema.Types.ObjectId, // Jisko subscribe kiya ja raha hai (Wo)
         ref: "User"
     }
-}, {timestamps: true})
+}, { timestamps: true });
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);
 
-module.exports = { Subscription }
+module.exports = { Subscription };

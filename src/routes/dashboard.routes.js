@@ -1,19 +1,12 @@
 const { Router } = require("express");
-const { 
-    getChannelStats, 
-    getChannelVideos 
-} = require("../controllers/dashboard.controller");
+const { getChannelStats, getChannelVideos } = require("../controllers/dashboard.controller");
 const { verifyJWT } = require("../middlewares/auth.middleware");
 
 const router = Router();
 
-// Dashboard secured hai
-router.use(verifyJWT);
+router.use(verifyJWT); // Dashboard sirf Login wale dekh sakte hain
 
-// 1. Stats (Views, Subs count)
-router.route("/stats").get(getChannelStats);
-
-// 2. Videos (My uploaded videos)
-router.route("/videos").get(getChannelVideos);
+router.route("/stats").get(getChannelStats);   // Stats ke liye
+router.route("/videos").get(getChannelVideos); // Videos list ke liye
 
 module.exports = router;

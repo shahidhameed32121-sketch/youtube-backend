@@ -1,35 +1,33 @@
-const cloudinary = require('cloudinary').v2;
-const fs = require('fs'); // Node ka file system (File read/write karne ke liye)
+const cloudinary = require("cloudinary").v2;
+const fs = require("fs");
 
-// Configuration (Keys hum .env mein rakhenge)
+// 1. Configuration (Aapki Details)
 cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-  api_key: process.env.CLOUDINARY_API_KEY, 
-  api_secret: process.env.CLOUDINARY_API_SECRET 
+  cloud_name: "dxxqw87xd", 
+  api_key: "982196935344779", 
+  api_secret: "Dtug6Jq0aRSg2iE65zA6zA109aI" 
 });
 
+// 2. Upload Function
 const uploadOnCloudinary = async (localFilePath) => {
     try {
         if (!localFilePath) return null;
 
-        // 1. File Cloudinary par upload karo
+        // Upload file to Cloudinary
         const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "auto" // Image ho ya Video, khud detect karlo
-        })
+            resource_type: "auto" // Video, Image, Audio sab khud detect karega
+        });
 
-        // 2. Upload ho gaya - Success message
-        // console.log("File is uploaded on cloudinary ", response.url);
+        // Upload hone ke baad local file delete kar do (Safayi)
+        fs.unlinkSync(localFilePath);
         
-        // 3. Local file delete kar do (Server saaf rakhne ke liye)
-        fs.unlinkSync(localFilePath)
         return response;
 
     } catch (error) {
-        // Agar upload fail ho jaye, tab bhi local file delete kar do
-        // taake server par kachra na jama ho
-        fs.unlinkSync(localFilePath) 
+        // Agar fail ho jaye, tab bhi local file delete kar do
+        fs.unlinkSync(localFilePath); 
         return null;
     }
 }
 
-module.exports = { uploadOnCloudinary }
+module.exports = { uploadOnCloudinary };
